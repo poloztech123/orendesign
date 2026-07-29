@@ -114,8 +114,13 @@ export async function publishPlansToGitHubApi(plans: ArchitecturalPlan[]): Promi
   }
 
   // 2. Direct GitHub REST API fallback for static environments
-  const defaultToken = ['ghp_B76TtpLEsHjf83KBRMByu', 'MwMEnsxHT3BogLr'].join('');
-  const GITHUB_TOKEN = (import.meta as any).env?.VITE_GITHUB_TOKEN || localStorage.getItem('oren_gh_token') || defaultToken;
+  const GITHUB_TOKEN = (import.meta as any).env?.VITE_GITHUB_TOKEN || localStorage.getItem('oren_gh_token') || '';
+  if (!GITHUB_TOKEN) {
+    return {
+      success: false,
+      message: 'GitHub Personal Access Token not set. Please provide a token in Admin Settings.',
+    };
+  }
   const REPO = 'poloztech123/orendesign';
   const jsonContent = JSON.stringify(plans, null, 2);
   
