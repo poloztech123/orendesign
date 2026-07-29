@@ -109,14 +109,14 @@ function writeJsonFile(filePath: string, data: any): void {
 // Function to rebuild docs and push to GitHub repository
 function triggerGitHubDeploy(): Promise<boolean> {
   return new Promise((resolve) => {
-    const token = process.env.GITHUB_TOKEN || process.env.VITE_GITHUB_TOKEN || '';
+    const token = process.env.GITHUB_TOKEN || '';
     if (!token) {
       console.warn("GITHUB_TOKEN environment variable not configured. Skipping background git push.");
       return resolve(false);
     }
     const remoteUrl = `https://poloztech123:${token}@github.com/poloztech123/orendesign.git`;
 
-    const cmd = `VITE_GITHUB_TOKEN="" npx vite build --outDir docs && touch docs/.nojekyll && git add . && (git commit -m "Auto-sync Admin catalog changes to GitHub Pages" || true) && git push -u ${remoteUrl} main --force && git subtree push --prefix docs ${remoteUrl} gh-pages`;
+    const cmd = `VITE_GITHUB_TOKEN="" npx vite build --outDir docs && touch docs/.nojekyll && cp docs/index.html docs/404.html && git add . && (git commit -m "Auto-sync Admin catalog changes to GitHub Pages" || true) && git push -u ${remoteUrl} main --force && git push ${remoteUrl} \`git subtree split --prefix docs main\`:gh-pages --force`;
 
     exec(cmd, { cwd: process.cwd() }, (error, stdout, stderr) => {
       if (error) {

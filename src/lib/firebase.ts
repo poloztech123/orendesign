@@ -109,7 +109,7 @@ export async function publishPlansToGitHubApi(plans: ArchitecturalPlan[]): Promi
   }
 
   // 2. Direct GitHub REST API fallback for static environments
-  const GITHUB_TOKEN = (import.meta as any).env?.VITE_GITHUB_TOKEN || (import.meta as any).env?.GITHUB_TOKEN || localStorage.getItem('oren_gh_token') || '';
+  const GITHUB_TOKEN = localStorage.getItem('oren_gh_token') || '';
   if (!GITHUB_TOKEN) {
     return {
       success: false,
