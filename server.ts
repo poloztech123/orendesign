@@ -130,14 +130,10 @@ function triggerGitHubDeploy(): Promise<boolean> {
   });
 }
 
-// Ensure database is seeded with initial catalog
+// Read stored database plans
 function getDatabasePlans() {
-  let stored = readJsonFile<any[]>(PLANS_FILE, []);
-  if (!stored || stored.length === 0) {
-    stored = ARCHITECTURAL_PLANS || [];
-    writePlansFile(stored);
-  }
-  return stored;
+  const stored = readJsonFile<any[]>(PLANS_FILE, []);
+  return stored || [];
 }
 
 // ================= API ENDPOINTS =================
@@ -218,7 +214,7 @@ app.post('/api/deploy-github', async (req, res) => {
     }
     res.json({
       success: true,
-      message: 'Successfully built and deployed live updates to GitHub Pages (poloztech123.github.io/orendesign/)!',
+      message: 'Published live updates successfully!',
     });
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });

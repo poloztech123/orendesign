@@ -61,7 +61,7 @@ export function getStoredPlans(): ArchitecturalPlan[] {
     const raw = localStorage.getItem(PLANS_STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) {
+      if (Array.isArray(parsed)) {
         return parsed;
       }
     }
@@ -106,11 +106,11 @@ export async function publishPlansToGitHubApi(plans: ArchitecturalPlan[]): Promi
       const result = await serverRes.json();
       if (result.success) {
         saveStoredPlans(plans);
-        return { success: true, message: result.message || 'Published to GitHub Pages successfully!' };
+        return { success: true, message: result.message || 'Published live successfully!' };
       }
     }
   } catch (err) {
-    console.warn("Server deployment endpoint unavailable, attempting direct GitHub API commit:", err);
+    console.warn("Server deployment endpoint unavailable, attempting direct API commit:", err);
   }
 
   // 2. Direct GitHub REST API fallback for static environments
@@ -180,13 +180,13 @@ export async function publishPlansToGitHubApi(plans: ArchitecturalPlan[]): Promi
   if (successCount > 0) {
     return {
       success: true,
-      message: `Successfully synced plans to GitHub! Changes will appear live on poloztech123.github.io/orendesign in 1-2 minutes.`,
+      message: `Successfully published plans live! Changes will appear live in 1-2 minutes.`,
     };
   }
 
   return {
     success: false,
-    message: 'Local cache updated. Sync to GitHub failed or offline.',
+    message: 'Local cache updated. Publish failed or offline.',
   };
 }
 

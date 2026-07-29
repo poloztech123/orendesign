@@ -118,13 +118,13 @@ export default function AdminDashboard({
 
   const handleSyncToGithub = async () => {
     setIsSyncingGithub(true);
-    setSuccessMsg('Syncing latest plans & deploying to GitHub Pages...');
+    setSuccessMsg('Publishing latest catalog changes live...');
     try {
       const res = await publishPlansToGitHubApi(plans);
       setSuccessMsg(res.message);
       setTimeout(() => setSuccessMsg(''), 6000);
     } catch (err: any) {
-      alert('GitHub sync notice: ' + (err.message || 'Updated locally.'));
+      alert('Publish notice: ' + (err.message || 'Updated locally.'));
     } finally {
       setIsSyncingGithub(false);
     }
@@ -551,10 +551,10 @@ export default function AdminDashboard({
                 onClick={handleSyncToGithub}
                 disabled={isSyncingGithub}
                 className="bg-[#84e114] text-stone-950 hover:bg-[#73c710] disabled:opacity-50 px-3.5 py-1.5 rounded-lg text-xs font-mono font-bold flex items-center gap-2 transition-all cursor-pointer shadow-lg focus:outline-none"
-                title="Publish changes directly to GitHub Pages link"
+                title="Publish catalog changes live"
               >
                 <Upload className={`h-3.5 w-3.5 ${isSyncingGithub ? 'animate-bounce' : ''}`} />
-                {isSyncingGithub ? 'Publishing...' : 'Publish to GitHub Pages'}
+                {isSyncingGithub ? 'Publishing...' : 'Publish'}
               </button>
             )}
             <button

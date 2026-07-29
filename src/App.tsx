@@ -397,6 +397,7 @@ export default function App() {
               searchParams={searchParams}
               onClearSearch={handleClearSearch}
               onImageClick={(plan) => handleOpenSlideshow(plan, 0)}
+              onOpenAdmin={handleOpenAdmin}
             />
 
             {/* Section 5: Accordion FAQ, Modification Call, & Testimonial Slider */}

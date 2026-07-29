@@ -13,6 +13,7 @@ interface PlanGridProps {
   searchParams: { beds: string; baths: string; maxSqft: string };
   onClearSearch: () => void;
   onImageClick?: (plan: ArchitecturalPlan) => void;
+  onOpenAdmin?: () => void;
 }
 
 export default function PlanGrid({
@@ -24,7 +25,8 @@ export default function PlanGrid({
   onClearStyle,
   searchParams,
   onClearSearch,
-  onImageClick
+  onImageClick,
+  onOpenAdmin
 }: PlanGridProps) {
   // Store which plan ID is currently hovered for the transition
   const [hoveredPlanId, setHoveredPlanId] = useState<string | null>(null);
@@ -174,19 +176,32 @@ export default function PlanGrid({
         {plans.length === 0 ? (
           <div className="text-center py-20 bg-white rounded-3xl border border-stone-100 max-w-3xl mx-auto shadow-sm p-8">
             <Filter className="h-12 w-12 mx-auto mb-4 text-stone-300 animate-pulse" />
-            <h3 className="font-serif text-xl font-medium text-stone-800 mb-2">No Matching Blueprints Found</h3>
+            <h3 className="font-serif text-xl font-medium text-stone-800 mb-2">
+              {hasSearchFilter || activeStyle ? "No Matching Blueprints Found" : "Catalog Currently Empty"}
+            </h3>
             <p className="font-display font-light text-stone-500 text-sm max-w-md mx-auto mb-6">
-              There are currently no pre-made layouts meeting your specific parameters. You can broaden your filter inputs or contact our design desk to custom design a house from scratch.
+              {hasSearchFilter || activeStyle
+                ? "There are currently no pre-made layouts meeting your specific parameters. You can broaden your filter inputs or clear active parameters."
+                : "No architectural projects have been added to the catalog yet. Each project can be added manually through the Control Panel."}
             </p>
-            <button
-              onClick={() => {
-                onClearStyle();
-                onClearSearch();
-              }}
-              className="bg-stone-900 hover:bg-[#1B4332] text-white px-6 py-3 rounded-xl font-display font-semibold text-sm transition-colors duration-300 shadow-sm cursor-pointer"
-            >
-              View Full Catalog
-            </button>
+            {hasSearchFilter || activeStyle ? (
+              <button
+                onClick={() => {
+                  onClearStyle();
+                  onClearSearch();
+                }}
+                className="bg-stone-900 hover:bg-[#1B4332] text-white px-6 py-3 rounded-xl font-display font-semibold text-sm transition-colors duration-300 shadow-sm cursor-pointer"
+              >
+                View Full Catalog
+              </button>
+            ) : onOpenAdmin ? (
+              <button
+                onClick={onOpenAdmin}
+                className="bg-[#1B4332] hover:bg-[#2D6A4F] text-white px-6 py-3 rounded-xl font-display font-semibold text-sm transition-colors duration-300 shadow-sm cursor-pointer"
+              >
+                + Add Project in Control Panel
+              </button>
+            ) : null}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
