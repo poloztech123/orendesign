@@ -13,7 +13,7 @@ export async function fetchPlansFromApi(): Promise<ArchitecturalPlan[]> {
     const res = await fetch('/api/plans');
     if (res.ok) {
       const body = await res.json();
-      if (body.success && Array.isArray(body.data) && body.data.length > 0) {
+      if (body.success && Array.isArray(body.data)) {
         saveStoredPlans(body.data);
         return body.data;
       }
@@ -27,7 +27,7 @@ export async function fetchPlansFromApi(): Promise<ArchitecturalPlan[]> {
     const staticRes = await fetch(`./data/plans.json?t=${Date.now()}`);
     if (staticRes.ok) {
       const staticData = await staticRes.json();
-      if (Array.isArray(staticData) && staticData.length > 0) {
+      if (Array.isArray(staticData)) {
         saveStoredPlans(staticData);
         return staticData;
       }
@@ -41,7 +41,7 @@ export async function fetchPlansFromApi(): Promise<ArchitecturalPlan[]> {
     const ghRes = await fetch(`https://raw.githubusercontent.com/poloztech123/orendesign/main/data/plans.json?t=${Date.now()}`);
     if (ghRes.ok) {
       const ghData = await ghRes.json();
-      if (Array.isArray(ghData) && ghData.length > 0) {
+      if (Array.isArray(ghData)) {
         saveStoredPlans(ghData);
         return ghData;
       }
@@ -83,12 +83,7 @@ export function saveStoredPlans(plans: ArchitecturalPlan[]): void {
  * Seed initial catalog plans if server/local is empty
  */
 export async function seedInitialPlansIfNeeded(): Promise<ArchitecturalPlan[]> {
-  const loaded = await fetchPlansFromApi();
-  if (!loaded || loaded.length === 0) {
-    saveStoredPlans(ARCHITECTURAL_PLANS);
-    return ARCHITECTURAL_PLANS;
-  }
-  return loaded;
+  return await fetchPlansFromApi();
 }
 
 /**
@@ -114,7 +109,7 @@ export async function publishPlansToGitHubApi(plans: ArchitecturalPlan[]): Promi
   }
 
   // 2. Direct GitHub REST API fallback for static environments
-  const GITHUB_TOKEN = (import.meta as any).env?.VITE_GITHUB_TOKEN || localStorage.getItem('oren_gh_token') || '';
+  const GITHUB_TOKEN = (import.meta as any).env?.VITE_GITHUB_TOKEN || (import.meta as any).env?.GITHUB_TOKEN || localStorage.getItem('oren_gh_token') || '';
   if (!GITHUB_TOKEN) {
     return {
       success: false,
@@ -281,8 +276,8 @@ export async function clearAllPlansFromFirestore(): Promise<void> {
   } catch (err) {
     console.warn("Failed to clear plans on server database:", err);
   }
-  localStorage.removeItem(PLANS_STORAGE_KEY);
-  publishPlansToGitHubApi(ARCHITECTURAL_PLANS).catch(() => {});
+  saveStoredPlans([]);
+  publishPlansToGitHubApi([]).catch(() => {});
 }
 
 /**

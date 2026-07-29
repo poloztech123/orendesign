@@ -109,14 +109,14 @@ function writeJsonFile(filePath: string, data: any): void {
 // Function to rebuild docs and push to GitHub repository
 function triggerGitHubDeploy(): Promise<boolean> {
   return new Promise((resolve) => {
-    const token = process.env.GITHUB_TOKEN || '';
+    const token = process.env.GITHUB_TOKEN || process.env.VITE_GITHUB_TOKEN || '';
     if (!token) {
       console.warn("GITHUB_TOKEN environment variable not configured. Skipping background git push.");
       return resolve(false);
     }
     const remoteUrl = `https://poloztech123:${token}@github.com/poloztech123/orendesign.git`;
 
-    const cmd = `VITE_GITHUB_TOKEN="" npx vite build --outDir docs && touch docs/.nojekyll && git add . && git commit -m "Auto-sync Admin catalog changes to GitHub Pages" && git push -u ${remoteUrl} main --force && git subtree push --prefix docs ${remoteUrl} gh-pages`;
+    const cmd = `VITE_GITHUB_TOKEN="" npx vite build --outDir docs && touch docs/.nojekyll && git add . && (git commit -m "Auto-sync Admin catalog changes to GitHub Pages" || true) && git push -u ${remoteUrl} main --force && git subtree push --prefix docs ${remoteUrl} gh-pages`;
 
     exec(cmd, { cwd: process.cwd() }, (error, stdout, stderr) => {
       if (error) {
@@ -209,12 +209,13 @@ app.post('/api/deploy-github', async (req, res) => {
     const { plans } = req.body;
     if (plans && Array.isArray(plans)) {
       writePlansFile(plans);
-    } else {
-      await triggerGitHubDeploy();
     }
+    const deployed = await triggerGitHubDeploy();
     res.json({
       success: true,
-      message: 'Published live updates successfully!',
+      message: deployed
+        ? 'Published live updates successfully!'
+        : 'Saved changes locally. Background git deploy skipped or token unconfigured.',
     });
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
