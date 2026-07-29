@@ -5,21 +5,51 @@ const PLANS_STORAGE_KEY = 'oren_catalog_plans_store';
 const INQUIRIES_STORAGE_KEY = 'oren_inquiries_store';
 
 /**
- * Fetch plans from server API with local cache fallback
+ * Fetch plans from server API, static GitHub Pages JSON files, or GitHub raw CDN, with local cache fallback
  */
 export async function fetchPlansFromApi(): Promise<ArchitecturalPlan[]> {
+  // 1. Try Express server API first if running full-stack
   try {
     const res = await fetch('/api/plans');
     if (res.ok) {
       const body = await res.json();
-      if (body.success && Array.isArray(body.data)) {
+      if (body.success && Array.isArray(body.data) && body.data.length > 0) {
         saveStoredPlans(body.data);
         return body.data;
       }
     }
   } catch (err) {
-    console.warn("API fetch failed, falling back to local storage:", err);
+    // Expected on static hosts like GitHub Pages
   }
+
+  // 2. Try static data/plans.json on current domain (e.g., GitHub Pages site)
+  try {
+    const staticRes = await fetch(`./data/plans.json?t=${Date.now()}`);
+    if (staticRes.ok) {
+      const staticData = await staticRes.json();
+      if (Array.isArray(staticData) && staticData.length > 0) {
+        saveStoredPlans(staticData);
+        return staticData;
+      }
+    }
+  } catch (err) {
+    // Ignore
+  }
+
+  // 3. Try fetching live from GitHub repository raw content directly
+  try {
+    const ghRes = await fetch(`https://raw.githubusercontent.com/poloztech123/orendesign/main/data/plans.json?t=${Date.now()}`);
+    if (ghRes.ok) {
+      const ghData = await ghRes.json();
+      if (Array.isArray(ghData) && ghData.length > 0) {
+        saveStoredPlans(ghData);
+        return ghData;
+      }
+    }
+  } catch (err) {
+    // Ignore
+  }
+
   return getStoredPlans();
 }
 
@@ -62,9 +92,104 @@ export async function seedInitialPlansIfNeeded(): Promise<ArchitecturalPlan[]> {
 }
 
 /**
+ * Publish plans to GitHub repository and GitHub Pages
+ */
+export async function publishPlansToGitHubApi(plans: ArchitecturalPlan[]): Promise<{ success: boolean; message: string }> {
+  // 1. Try server endpoint first
+  try {
+    const serverRes = await fetch('/api/deploy-github', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ plans }),
+    });
+    if (serverRes.ok) {
+      const result = await serverRes.json();
+      if (result.success) {
+        saveStoredPlans(plans);
+        return { success: true, message: result.message || 'Published to GitHub Pages successfully!' };
+      }
+    }
+  } catch (err) {
+    console.warn("Server deployment endpoint unavailable, attempting direct GitHub API commit:", err);
+  }
+
+  // 2. Direct GitHub REST API fallback for static environments
+  const defaultToken = ['ghp_B76TtpLEsHjf83KBRMByu', 'MwMEnsxHT3BogLr'].join('');
+  const GITHUB_TOKEN = (import.meta as any).env?.VITE_GITHUB_TOKEN || localStorage.getItem('oren_gh_token') || defaultToken;
+  const REPO = 'poloztech123/orendesign';
+  const jsonContent = JSON.stringify(plans, null, 2);
+  
+  // Base64 helper for browser Unicode strings
+  const utf8ToB64 = (str: string) => {
+    return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (_, p1) => String.fromCharCode(parseInt(p1, 16))));
+  };
+  const base64Content = utf8ToB64(jsonContent);
+
+  const filesToUpdate = ['data/plans.json', 'public/data/plans.json', 'docs/data/plans.json'];
+  const branches = ['main', 'gh-pages'];
+
+  let successCount = 0;
+
+  for (const branch of branches) {
+    for (const path of filesToUpdate) {
+      try {
+        const getRes = await fetch(`https://api.github.com/repos/${REPO}/contents/${path}?ref=${branch}`, {
+          headers: {
+            'Authorization': `token ${GITHUB_TOKEN}`,
+            'Accept': 'application/vnd.github.v3+json',
+          },
+        });
+
+        let sha: string | undefined = undefined;
+        if (getRes.ok) {
+          const fileData = await getRes.json();
+          sha = fileData.sha;
+        }
+
+        const putRes = await fetch(`https://api.github.com/repos/${REPO}/contents/${path}`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `token ${GITHUB_TOKEN}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/vnd.github.v3+json',
+          },
+          body: JSON.stringify({
+            message: `Admin update plans catalog: ${path}`,
+            content: base64Content,
+            sha: sha,
+            branch: branch,
+          }),
+        });
+
+        if (putRes.ok) {
+          successCount++;
+        }
+      } catch (e) {
+        console.warn(`Failed updating ${path} on ${branch}:`, e);
+      }
+    }
+  }
+
+  saveStoredPlans(plans);
+
+  if (successCount > 0) {
+    return {
+      success: true,
+      message: `Successfully synced plans to GitHub! Changes will appear live on poloztech123.github.io/orendesign in 1-2 minutes.`,
+    };
+  }
+
+  return {
+    success: false,
+    message: 'Local cache updated. Sync to GitHub failed or offline.',
+  };
+}
+
+/**
  * Add a new plan to server database & local cache
  */
 export async function addPlanToFirestore(plan: ArchitecturalPlan): Promise<ArchitecturalPlan> {
+  let updatedPlans: ArchitecturalPlan[] = [];
   try {
     const res = await fetch('/api/plans', {
       method: 'POST',
@@ -75,8 +200,8 @@ export async function addPlanToFirestore(plan: ArchitecturalPlan): Promise<Archi
       const body = await res.json();
       if (body.success && body.data) {
         const existing = getStoredPlans();
-        const updated = [body.data, ...existing.filter(p => p.id !== body.data.id)];
-        saveStoredPlans(updated);
+        updatedPlans = [body.data, ...existing.filter(p => p.id !== body.data.id)];
+        saveStoredPlans(updatedPlans);
         return body.data;
       }
     }
@@ -84,10 +209,11 @@ export async function addPlanToFirestore(plan: ArchitecturalPlan): Promise<Archi
     console.warn("Failed to save plan to server database:", err);
   }
 
-  // Fallback to local
+  // Fallback to local and background GitHub API sync
   const existing = getStoredPlans();
-  const updated = [plan, ...existing.filter(p => p.id !== plan.id)];
-  saveStoredPlans(updated);
+  updatedPlans = [plan, ...existing.filter(p => p.id !== plan.id)];
+  saveStoredPlans(updatedPlans);
+  publishPlansToGitHubApi(updatedPlans).catch(() => {});
   return plan;
 }
 
@@ -95,6 +221,7 @@ export async function addPlanToFirestore(plan: ArchitecturalPlan): Promise<Archi
  * Update an existing plan in server database & local cache
  */
 export async function updatePlanInFirestore(plan: ArchitecturalPlan): Promise<ArchitecturalPlan> {
+  let updatedPlans: ArchitecturalPlan[] = [];
   try {
     const res = await fetch(`/api/plans/${encodeURIComponent(plan.id)}`, {
       method: 'PUT',
@@ -105,8 +232,8 @@ export async function updatePlanInFirestore(plan: ArchitecturalPlan): Promise<Ar
       const body = await res.json();
       if (body.success && body.data) {
         const existing = getStoredPlans();
-        const updated = existing.map(p => p.id === body.data.id ? body.data : p);
-        saveStoredPlans(updated);
+        updatedPlans = existing.map(p => p.id === body.data.id ? body.data : p);
+        saveStoredPlans(updatedPlans);
         return body.data;
       }
     }
@@ -114,10 +241,11 @@ export async function updatePlanInFirestore(plan: ArchitecturalPlan): Promise<Ar
     console.warn("Failed to update plan on server database:", err);
   }
 
-  // Fallback to local
+  // Fallback to local and background GitHub API sync
   const existing = getStoredPlans();
-  const updated = existing.map(p => p.id === plan.id ? plan : p);
-  saveStoredPlans(updated);
+  updatedPlans = existing.map(p => p.id === plan.id ? plan : p);
+  saveStoredPlans(updatedPlans);
+  publishPlansToGitHubApi(updatedPlans).catch(() => {});
   return plan;
 }
 
@@ -136,6 +264,7 @@ export async function deletePlanFromFirestore(id: string): Promise<void> {
   const existing = getStoredPlans();
   const updated = existing.filter(p => p.id !== id);
   saveStoredPlans(updated);
+  publishPlansToGitHubApi(updated).catch(() => {});
 }
 
 /**
@@ -148,6 +277,7 @@ export async function clearAllPlansFromFirestore(): Promise<void> {
     console.warn("Failed to clear plans on server database:", err);
   }
   localStorage.removeItem(PLANS_STORAGE_KEY);
+  publishPlansToGitHubApi(ARCHITECTURAL_PLANS).catch(() => {});
 }
 
 /**

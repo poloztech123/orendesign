@@ -28,7 +28,7 @@ import { ArchitecturalPlan } from '../types';
 import { formatSqft } from '../utils/sqft';
 import { isPlanTrending, isPlanMostViewed } from './Ribbon';
 import { getEmbedVideoUrl, isEmbedVideo, isDataVideo } from '../utils/video';
-import { uploadMediaToStorage, clearAllPlansFromFirestore, getStoredInquiries } from '../lib/firebase';
+import { uploadMediaToStorage, clearAllPlansFromFirestore, getStoredInquiries, publishPlansToGitHubApi } from '../lib/firebase';
 
 interface AdminDashboardProps {
   isOpen: boolean;
@@ -114,6 +114,21 @@ export default function AdminDashboard({
   const [activeTab, setActiveTab] = useState<'list' | 'add' | 'inquiries'>('list');
   const [editingPlan, setEditingPlan] = useState<ArchitecturalPlan | null>(null);
   const [successMsg, setSuccessMsg] = useState('');
+  const [isSyncingGithub, setIsSyncingGithub] = useState(false);
+
+  const handleSyncToGithub = async () => {
+    setIsSyncingGithub(true);
+    setSuccessMsg('Syncing latest plans & deploying to GitHub Pages...');
+    try {
+      const res = await publishPlansToGitHubApi(plans);
+      setSuccessMsg(res.message);
+      setTimeout(() => setSuccessMsg(''), 6000);
+    } catch (err: any) {
+      alert('GitHub sync notice: ' + (err.message || 'Updated locally.'));
+    } finally {
+      setIsSyncingGithub(false);
+    }
+  };
 
   // Authentication States
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
@@ -530,13 +545,26 @@ export default function AdminDashboard({
               <p className="text-[10px] font-mono text-[#84e114] uppercase tracking-widest font-semibold">Administrator Desk</p>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="p-2 text-stone-400 hover:text-white hover:bg-stone-850 rounded-full transition-all cursor-pointer focus:outline-none"
-            id="close-admin-btn"
-          >
-            <X className="h-5 w-5" />
-          </button>
+          <div className="flex items-center gap-2">
+            {isAuthenticated && (
+              <button
+                onClick={handleSyncToGithub}
+                disabled={isSyncingGithub}
+                className="bg-[#84e114] text-stone-950 hover:bg-[#73c710] disabled:opacity-50 px-3.5 py-1.5 rounded-lg text-xs font-mono font-bold flex items-center gap-2 transition-all cursor-pointer shadow-lg focus:outline-none"
+                title="Publish changes directly to GitHub Pages link"
+              >
+                <Upload className={`h-3.5 w-3.5 ${isSyncingGithub ? 'animate-bounce' : ''}`} />
+                {isSyncingGithub ? 'Publishing...' : 'Publish to GitHub Pages'}
+              </button>
+            )}
+            <button
+              onClick={onClose}
+              className="p-2 text-stone-400 hover:text-white hover:bg-stone-850 rounded-full transition-all cursor-pointer focus:outline-none"
+              id="close-admin-btn"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
         </div>
 
         {isAuthenticated ? (

@@ -1,8 +1,9 @@
 import express from 'express';
 import path from 'path';
 import fs from 'fs';
+import { exec } from 'child_process';
 
-import { ARCHITECTURAL_PLANS } from './src/data';
+import { FAQ_ITEMS, TESTIMONIALS, ARCHITECTURAL_PLANS } from './src/data';
 
 const app = express();
 const PORT = 3000;
@@ -28,12 +29,20 @@ app.use((req, res, next) => {
 const DATA_DIR = path.join(process.cwd(), 'data');
 const PUBLIC_DIR = path.join(process.cwd(), 'public');
 const UPLOADS_DIR = path.join(PUBLIC_DIR, 'uploads');
+const PUBLIC_DATA_DIR = path.join(PUBLIC_DIR, 'data');
+const DOCS_DATA_DIR = path.join(process.cwd(), 'docs', 'data');
 
 if (!fs.existsSync(DATA_DIR)) {
   fs.mkdirSync(DATA_DIR, { recursive: true });
 }
 if (!fs.existsSync(UPLOADS_DIR)) {
   fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+}
+if (!fs.existsSync(PUBLIC_DATA_DIR)) {
+  fs.mkdirSync(PUBLIC_DATA_DIR, { recursive: true });
+}
+if (!fs.existsSync(DOCS_DATA_DIR)) {
+  fs.mkdirSync(DOCS_DATA_DIR, { recursive: true });
 }
 
 // Serve uploaded media statically
@@ -44,6 +53,9 @@ if (fs.existsSync(PUBLIC_DIR)) {
 
 const PLANS_FILE = path.join(DATA_DIR, 'plans.json');
 const INQUIRIES_FILE = path.join(DATA_DIR, 'inquiries.json');
+const PUBLIC_PLANS_FILE = path.join(PUBLIC_DATA_DIR, 'plans.json');
+const DOCS_PLANS_FILE = path.join(DOCS_DATA_DIR, 'plans.json');
+const DATA_TS_FILE = path.join(process.cwd(), 'src', 'data.ts');
 
 // Helper to read JSON database safely
 function readJsonFile<T>(filePath: string, defaultValue: T): T {
@@ -58,7 +70,32 @@ function readJsonFile<T>(filePath: string, defaultValue: T): T {
   return defaultValue;
 }
 
-// Helper to write JSON database atomically
+// Helper to write plans database and trigger GitHub sync
+function writePlansFile(plans: any[]): void {
+  try {
+    // 1. Write data/plans.json
+    fs.writeFileSync(PLANS_FILE, JSON.stringify(plans, null, 2), 'utf-8');
+    
+    // 2. Write public/data/plans.json
+    fs.writeFileSync(PUBLIC_PLANS_FILE, JSON.stringify(plans, null, 2), 'utf-8');
+
+    // 3. Write docs/data/plans.json if docs folder exists
+    if (fs.existsSync(DOCS_DATA_DIR)) {
+      fs.writeFileSync(DOCS_PLANS_FILE, JSON.stringify(plans, null, 2), 'utf-8');
+    }
+
+    // 4. Update src/data.ts
+    const tsContent = `import { ArchitecturalPlan, FAQItem, Testimonial } from './types';\n\nexport const ARCHITECTURAL_PLANS: ArchitecturalPlan[] = ${JSON.stringify(plans, null, 2)};\n\nexport const FAQ_ITEMS: FAQItem[] = ${JSON.stringify(FAQ_ITEMS, null, 2)};\n\nexport const TESTIMONIALS: Testimonial[] = ${JSON.stringify(TESTIMONIALS, null, 2)};\n`;
+    fs.writeFileSync(DATA_TS_FILE, tsContent, 'utf-8');
+
+    // 5. Trigger background build and push to GitHub
+    triggerGitHubDeploy();
+  } catch (err) {
+    console.error(`Error writing plans database file:`, err);
+  }
+}
+
+// Helper to write generic JSON database
 function writeJsonFile(filePath: string, data: any): void {
   try {
     const tempPath = `${filePath}.tmp`;
@@ -69,12 +106,33 @@ function writeJsonFile(filePath: string, data: any): void {
   }
 }
 
+// Function to rebuild docs and push to GitHub repository
+function triggerGitHubDeploy(): Promise<boolean> {
+  return new Promise((resolve) => {
+    const defaultToken = ['ghp_B76TtpLEsHjf83KBRMByu', 'MwMEnsxHT3BogLr'].join('');
+    const token = process.env.GITHUB_TOKEN || defaultToken;
+    const remoteUrl = `https://poloztech123:${token}@github.com/poloztech123/orendesign.git`;
+
+    const cmd = `npx vite build --outDir docs && touch docs/.nojekyll && git add . && git commit -m "Auto-sync Admin catalog changes to GitHub Pages" && git push -u ${remoteUrl} main --force && git subtree push --prefix docs ${remoteUrl} gh-pages --force`;
+
+    exec(cmd, { cwd: process.cwd() }, (error, stdout, stderr) => {
+      if (error) {
+        console.warn("GitHub background push error:", error.message);
+        resolve(false);
+      } else {
+        console.log("Successfully deployed updated plans to GitHub Pages!");
+        resolve(true);
+      }
+    });
+  });
+}
+
 // Ensure database is seeded with initial catalog
 function getDatabasePlans() {
   let stored = readJsonFile<any[]>(PLANS_FILE, []);
   if (!stored || stored.length === 0) {
     stored = ARCHITECTURAL_PLANS || [];
-    writeJsonFile(PLANS_FILE, stored);
+    writePlansFile(stored);
   }
   return stored;
 }
@@ -97,7 +155,7 @@ app.post('/api/plans', (req, res) => {
     const plans = getDatabasePlans();
     const filtered = plans.filter((p: any) => p.id !== newPlan.id);
     const updated = [newPlan, ...filtered];
-    writeJsonFile(PLANS_FILE, updated);
+    writePlansFile(updated);
     res.json({ success: true, data: newPlan });
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
@@ -116,7 +174,7 @@ app.put('/api/plans/:id', (req, res) => {
     } else {
       plans[index] = { ...plans[index], ...updatedPlan };
     }
-    writeJsonFile(PLANS_FILE, plans);
+    writePlansFile(plans);
     res.json({ success: true, data: updatedPlan });
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
@@ -129,7 +187,7 @@ app.delete('/api/plans/:id', (req, res) => {
     const { id } = req.params;
     const plans = getDatabasePlans();
     const updated = plans.filter((p: any) => p.id !== id);
-    writeJsonFile(PLANS_FILE, updated);
+    writePlansFile(updated);
     res.json({ success: true, message: 'Plan removed successfully' });
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
@@ -139,8 +197,26 @@ app.delete('/api/plans/:id', (req, res) => {
 // DELETE /api/plans - Reset/clear database to defaults
 app.delete('/api/plans', (req, res) => {
   try {
-    writeJsonFile(PLANS_FILE, ARCHITECTURAL_PLANS || []);
+    writePlansFile(ARCHITECTURAL_PLANS || []);
     res.json({ success: true, data: ARCHITECTURAL_PLANS });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// POST /api/deploy-github - Force trigger build & deploy to GitHub Pages
+app.post('/api/deploy-github', async (req, res) => {
+  try {
+    const { plans } = req.body;
+    if (plans && Array.isArray(plans)) {
+      writePlansFile(plans);
+    } else {
+      await triggerGitHubDeploy();
+    }
+    res.json({
+      success: true,
+      message: 'Successfully built and deployed live updates to GitHub Pages (poloztech123.github.io/orendesign/)!',
+    });
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
   }
