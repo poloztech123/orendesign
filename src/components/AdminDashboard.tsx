@@ -546,17 +546,6 @@ export default function AdminDashboard({
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {isAuthenticated && (
-              <button
-                onClick={handleSyncToGithub}
-                disabled={isSyncingGithub}
-                className="bg-[#84e114] text-stone-950 hover:bg-[#73c710] disabled:opacity-50 px-3.5 py-1.5 rounded-lg text-xs font-mono font-bold flex items-center gap-2 transition-all cursor-pointer shadow-lg focus:outline-none"
-                title="Publish catalog changes live"
-              >
-                <Upload className={`h-3.5 w-3.5 ${isSyncingGithub ? 'animate-bounce' : ''}`} />
-                {isSyncingGithub ? 'Publishing...' : 'Publish'}
-              </button>
-            )}
             <button
               onClick={onClose}
               className="p-2 text-stone-400 hover:text-white hover:bg-stone-850 rounded-full transition-all cursor-pointer focus:outline-none"
@@ -1513,7 +1502,7 @@ export default function AdminDashboard({
                     </>
                   ) : (
                     <>
-                      <Check className="h-4.5 w-4.5" /> {editingPlan ? 'Save Changes' : 'Confirm & Publish'}
+                      <Check className="h-4.5 w-4.5" /> Confirm Changes
                     </>
                   )}
                 </button>
