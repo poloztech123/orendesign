@@ -196,8 +196,8 @@ app.delete('/api/plans/:id', (req, res) => {
 // DELETE /api/plans - Reset/clear database to defaults
 app.delete('/api/plans', (req, res) => {
   try {
-    writePlansFile(ARCHITECTURAL_PLANS || []);
-    res.json({ success: true, data: ARCHITECTURAL_PLANS });
+    writePlansFile([]);
+    res.json({ success: true, data: [] });
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
   }
