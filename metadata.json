@@ -1,0 +1,6 @@
+{
+  "name": "Oren Designs",
+  "description": "A curated marketplace of premium, architect-designed home blueprints and structural plans engineered for modern living.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
