@@ -3,7 +3,7 @@ import { ArchitecturalPlan, FAQItem, Testimonial } from './types';
 export const ARCHITECTURAL_PLANS: ArchitecturalPlan[] = [
   {
     "id": "plan-1785426859989",
-    "name": "rttt",
+    "name": "Testing",
     "projectNo": "P-003",
     "subtitle": "3 Bed, 2 Bath Modern Classic",
     "description": "",
