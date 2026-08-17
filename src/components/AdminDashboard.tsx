@@ -1932,14 +1932,50 @@ CREATE POLICY "Public Storage Delete" ON storage.objects FOR DELETE USING (bucke
                   </div>
                 </div>
 
-                {/* Error Banner if any */}
-                {supabaseTestStatus.errorMessage && (
-                  <div className="mt-4 p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-red-300 text-xs font-mono space-y-1">
-                    <span className="font-bold flex items-center gap-1.5 text-red-400">
-                      <AlertTriangle className="h-4 w-4" /> Supabase Connection Error:
-                    </span>
-                    <p className="text-[11px] leading-relaxed">{supabaseTestStatus.errorMessage}</p>
-                  </div>
+                {/* Status or Guidance Banner */}
+                {supabaseTestStatus.tested && (
+                  <>
+                    {supabaseTestStatus.tableOk && !supabaseTestStatus.storageOk && (
+                      <div className="mt-4 p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl text-amber-200 text-xs font-mono space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold flex items-center gap-1.5 text-amber-400 text-sm">
+                            <CheckCircle2 className="h-4 w-4 text-[#84e114]" /> Database Table Connected! Storage Bucket Needed
+                          </span>
+                          <a
+                            href="https://supabase.com/dashboard/project/rbqjcalcoaavuxqsyave/storage/buckets"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 px-3 py-1 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 rounded-lg text-[11px] font-sans font-semibold transition-colors"
+                          >
+                            Open Supabase Storage <ExternalLink className="h-3 w-3" />
+                          </a>
+                        </div>
+                        <p className="text-[11px] text-amber-300/80 leading-relaxed font-sans">
+                          Your <code className="bg-stone-900 px-1 py-0.5 rounded text-white font-mono">public.projects</code> database table is fully operational. To enable direct image and blueprint uploads, create the <strong className="text-white">projects</strong> storage bucket:
+                        </p>
+                        <div className="bg-stone-900/90 p-3 rounded-lg border border-stone-800 text-[11px] text-stone-300 font-sans space-y-1.5">
+                          <p><strong className="text-[#84e114]">Method 1 (Easiest — 3 clicks):</strong> Go to Supabase <strong>Storage</strong> → Click <strong>New bucket</strong> → Name it <code className="text-white font-mono font-bold bg-stone-800 px-1 py-0.5 rounded">projects</code> → Switch <strong>Public bucket</strong> to <strong className="text-[#84e114]">ON</strong> → Click <strong>Save</strong>.</p>
+                          <p><strong className="text-[#84e114]">Method 2 (SQL):</strong> Or copy and run the SQL script below in your Supabase SQL editor.</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {!supabaseTestStatus.tableOk && supabaseTestStatus.errorMessage && (
+                      <div className="mt-4 p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-red-300 text-xs font-mono space-y-1">
+                        <span className="font-bold flex items-center gap-1.5 text-red-400">
+                          <AlertTriangle className="h-4 w-4" /> Supabase Connection Error:
+                        </span>
+                        <p className="text-[11px] leading-relaxed">{supabaseTestStatus.errorMessage}</p>
+                      </div>
+                    )}
+
+                    {supabaseTestStatus.tableOk && supabaseTestStatus.storageOk && (
+                      <div className="mt-4 p-3 bg-[#84e114]/10 border border-[#84e114]/30 rounded-xl text-[#84e114] text-xs font-mono flex items-center gap-2">
+                        <CheckCircle2 className="h-4 w-4 shrink-0" />
+                        <span>All Systems Operational! Database table and Storage bucket are live and ready.</span>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
 
