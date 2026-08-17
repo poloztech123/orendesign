@@ -2094,16 +2094,24 @@ CREATE TABLE IF NOT EXISTS public.projects (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Enable RLS and public access
+-- Enable RLS and public access for table
 ALTER TABLE public.projects ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Allow public read access" ON public.projects;
+DROP POLICY IF EXISTS "Allow public write access" ON public.projects;
 CREATE POLICY "Allow public read access" ON public.projects FOR SELECT USING (true);
 CREATE POLICY "Allow public write access" ON public.projects FOR ALL USING (true) WITH CHECK (true);
 ALTER PUBLICATION supabase_realtime ADD TABLE public.projects;
 
--- 2. Create Storage Bucket & Policies
+-- 2. Create Storage Bucket & Clean RLS Policies for images/plans
 INSERT INTO storage.buckets (id, name, public) 
 VALUES ('projects', 'projects', true)
 ON CONFLICT (id) DO UPDATE SET public = true;
+
+DROP POLICY IF EXISTS "Public Storage Access" ON storage.objects;
+DROP POLICY IF EXISTS "Public Storage Insert" ON storage.objects;
+DROP POLICY IF EXISTS "Public Storage Update" ON storage.objects;
+DROP POLICY IF EXISTS "Public Storage Delete" ON storage.objects;
+DROP POLICY IF EXISTS "Allow All for projects bucket" ON storage.objects;
 
 CREATE POLICY "Public Storage Access" ON storage.objects FOR SELECT USING (bucket_id = 'projects');
 CREATE POLICY "Public Storage Insert" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'projects');

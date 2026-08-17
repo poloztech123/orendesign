@@ -484,38 +484,62 @@ app.get('/api/supabase/test', async (req, res) => {
 
   // 2. Test storage bucket
   try {
-    const allBucketsRes = await fetch(`${supaUrl}/storage/v1/bucket`, {
+    const filesRes = await fetch(`${supaUrl}/storage/v1/object/list/projects`, {
+      method: 'POST',
       headers: {
         'apikey': supaKey,
-        'Authorization': `Bearer ${supaKey}`
-      }
+        'Authorization': `Bearer ${supaKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ prefix: '', limit: 100 })
     });
 
-    if (allBucketsRes.ok) {
-      const buckets = await allBucketsRes.json();
-      if (Array.isArray(buckets) && buckets.some((b: any) => b.id === 'projects' || b.name === 'projects')) {
+    if (filesRes.ok) {
+      const files = await filesRes.json();
+      if (Array.isArray(files)) {
+        storageFilesCount = files.length;
+      }
+
+      // Test upload permission to verify RLS policy allows writes
+      const testProbe = Buffer.from('oren-probe');
+      const probeRes = await fetch(`${supaUrl}/storage/v1/object/projects/.probe.txt`, {
+        method: 'POST',
+        headers: {
+          'apikey': supaKey,
+          'Authorization': `Bearer ${supaKey}`,
+          'Content-Type': 'text/plain',
+          'x-upsert': 'true'
+        },
+        body: testProbe
+      });
+
+      if (probeRes.ok) {
         storageOk = true;
-        // Count files
+        // Clean up probe file silently
         try {
-          const filesRes = await fetch(`${supaUrl}/storage/v1/object/list/projects`, {
-            method: 'POST',
+          await fetch(`${supaUrl}/storage/v1/object/projects/.probe.txt`, {
+            method: 'DELETE',
             headers: {
               'apikey': supaKey,
-              'Authorization': `Bearer ${supaKey}`,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ prefix: '', limit: 100 })
+              'Authorization': `Bearer ${supaKey}`
+            }
           });
-          if (filesRes.ok) {
-            const files = await filesRes.json();
-            if (Array.isArray(files)) storageFilesCount = files.length;
-          }
         } catch (_) {}
       } else {
-        errors.push(`Storage: Bucket 'projects' not created yet. (Copy & run the SQL setup script below)`);
+        const probeText = await probeRes.text();
+        if (probeText.includes('row-level security') || probeRes.status === 403 || probeRes.status === 401) {
+          errors.push("Storage: Bucket 'projects' exists, but RLS Upload Policy is missing. Run the Storage SQL policies below in Supabase SQL Editor.");
+        } else {
+          errors.push(`Storage: Bucket 'projects' found, but test upload returned HTTP ${probeRes.status}: ${probeText}`);
+        }
       }
     } else {
-      errors.push(`Storage API error: HTTP ${allBucketsRes.status}`);
+      const listText = await filesRes.text();
+      if (filesRes.status === 404 || listText.includes('NoSuchBucket') || listText.includes('Bucket not found') || listText.includes('404')) {
+        errors.push("Storage: Bucket 'projects' not created yet. (Copy & run the SQL setup script below or create bucket 'projects' in Supabase Storage)");
+      } else {
+        errors.push(`Storage API error: HTTP ${filesRes.status} - ${listText}`);
+      }
     }
   } catch (err: any) {
     errors.push(`Storage fetch error: ${err.message}`);
