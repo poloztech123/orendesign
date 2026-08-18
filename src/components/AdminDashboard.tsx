@@ -67,13 +67,7 @@ const ALL_CATEGORIES = [
 
 // Aesthetic architectural placeholder images
 const PRESET_IMAGES = [
-  'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80',
-  'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=800&q=80',
-  'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=800&q=80',
-  'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80',
-  'https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&w=800&q=80',
-  'https://images.unsplash.com/photo-1613977257363-707ba9348227?auto=format&fit=crop&w=800&q=80',
-  'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=800&q=80'
+  ''
 ];
 
 const compressImage = (file: File, maxWidth = 800, maxHeight = 800, quality = 0.65): Promise<string> => {
@@ -323,7 +317,7 @@ CREATE POLICY "Public Storage Delete" ON storage.objects FOR DELETE USING (bucke
 
   const handleLoginSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (loginEmail.trim().toLowerCase() === 'admin@orendesignandbuild.com' && loginPassword === '@orendesign') {
+    if (loginEmail.trim().toLowerCase() === 'admin@orendesignandbuild.com' && loginPassword === '@orendesigN4') {
       setIsAuthenticated(true);
       localStorage.setItem('oren_admin_authenticated', 'true');
       sessionStorage.setItem('oren_admin_authenticated', 'true');
