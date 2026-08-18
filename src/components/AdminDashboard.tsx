@@ -30,7 +30,8 @@ import {
   AlertTriangle,
   ExternalLink,
   Copy,
-  HardDrive
+  HardDrive,
+  LogOut
 } from 'lucide-react';
 import { ArchitecturalPlan } from '../types';
 import { formatSqft } from '../utils/sqft';
@@ -305,12 +306,8 @@ CREATE POLICY "Public Storage Delete" ON storage.objects FOR DELETE USING (bucke
     }
   };
 
-  // Authentication States
-  const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    return localStorage.getItem('oren_admin_authenticated') === 'true' ||
-           sessionStorage.getItem('oren_admin_authenticated') === 'true';
-  });
+  // Authentication States - Always require fresh login whenever opened
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [loginError, setLoginError] = useState('');
@@ -319,19 +316,29 @@ CREATE POLICY "Public Storage Delete" ON storage.objects FOR DELETE USING (bucke
     e.preventDefault();
     if (loginEmail.trim().toLowerCase() === 'admin@orendesignandbuild.com' && loginPassword === '@orendesigN4') {
       setIsAuthenticated(true);
-      localStorage.setItem('oren_admin_authenticated', 'true');
-      sessionStorage.setItem('oren_admin_authenticated', 'true');
       setLoginError('');
     } else {
       setLoginError('Invalid administrator credentials.');
     }
   };
 
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    setLoginEmail('');
+    setLoginPassword('');
+    setLoginError('');
+    localStorage.removeItem('oren_admin_authenticated');
+    sessionStorage.removeItem('oren_admin_authenticated');
+  };
+
   useEffect(() => {
     if (!isOpen) {
+      setIsAuthenticated(false);
       setLoginEmail('');
       setLoginPassword('');
       setLoginError('');
+      localStorage.removeItem('oren_admin_authenticated');
+      sessionStorage.removeItem('oren_admin_authenticated');
     }
   }, [isOpen]);
 
@@ -745,10 +752,24 @@ CREATE POLICY "Public Storage Delete" ON storage.objects FOR DELETE USING (bucke
             </div>
           </div>
           <div className="flex items-center gap-2">
+            {isAuthenticated && (
+              <button
+                onClick={handleLogout}
+                className="px-3 py-1.5 bg-stone-850 hover:bg-red-500/20 border border-stone-700 hover:border-red-500/40 text-stone-300 hover:text-red-300 rounded-lg text-xs font-mono transition-colors flex items-center gap-1.5 cursor-pointer focus:outline-none"
+                title="Log out from administrator desk"
+              >
+                <LogOut className="h-3.5 w-3.5" />
+                <span>Log Out</span>
+              </button>
+            )}
             <button
-              onClick={onClose}
+              onClick={() => {
+                handleLogout();
+                onClose();
+              }}
               className="p-2 text-stone-400 hover:text-white hover:bg-stone-850 rounded-full transition-all cursor-pointer focus:outline-none"
               id="close-admin-btn"
+              title="Close and lock admin desk"
             >
               <X className="h-5 w-5" />
             </button>
