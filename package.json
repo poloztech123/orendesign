@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
-    "build": "vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs && vite build --outDir docs && touch docs/.nojekyll",
+    "build": "vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs && vite build --outDir docs && cp docs/index.html docs/404.html && echo 'orendesignandbuild.com' > docs/CNAME && touch docs/.nojekyll && rm -rf production_files && cp -r docs production_files",
     "start": "node dist/server.cjs",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
