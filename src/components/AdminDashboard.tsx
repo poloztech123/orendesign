@@ -1610,13 +1610,13 @@ CREATE POLICY "Public Storage Delete" ON storage.objects FOR DELETE USING (bucke
                         {isVideoUploading ? (
                           <div className="flex flex-col items-center gap-2">
                             <div className="animate-spin rounded-full h-5 w-5 border-2 border-[#84e114] border-t-transparent" />
-                            <span className="text-[11px] font-semibold text-[#84e114]">Uploading Video to Firebase Storage... {videoUploadProgress ?? 0}%</span>
+                            <span className="text-[11px] font-semibold text-[#84e114]">Uploading Video to Storage... {videoUploadProgress ?? 0}%</span>
                           </div>
                         ) : (
                           <>
                             <Video className="h-4 w-4 text-[#84e114]" />
-                            <span className="text-[11px] font-semibold text-stone-300">Upload Local Video to Firebase Storage</span>
-                            <span className="text-[9px] text-stone-500">Auto-synced in real-time across all devices (MP4, WebM)</span>
+                            <span className="text-[11px] font-semibold text-stone-300">Upload Local Video</span>
+                            <span className="text-[9px] text-stone-500">Auto-synced (MP4, WebM)</span>
                           </>
                         )}
                       </button>
