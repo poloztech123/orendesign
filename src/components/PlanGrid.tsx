@@ -221,12 +221,18 @@ export default function PlanGrid({
                   title="Click cover image to view photo slideshow"
                 >
                   {/* Photo Container */}
-                  <img
-                    src={formatImageUrl(plan.image)}
-                    alt={plan.name}
-                    referrerPolicy="no-referrer"
-                    className="w-full h-full object-cover transition-all duration-700 ease-out group-hover/img:scale-105"
-                  />
+                  {plan.image ? (
+                    <img
+                      src={formatImageUrl(plan.image)}
+                      alt={plan.name}
+                      referrerPolicy="no-referrer"
+                      className="w-full h-full object-cover transition-all duration-700 ease-out group-hover/img:scale-105"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-stone-900 flex items-center justify-center">
+                      <span className="font-mono text-xs text-stone-600 uppercase tracking-widest">Blueprint</span>
+                    </div>
+                  )}
 
                   {/* Elegant Hover Slideshow Indicator */}
                   <div className="absolute inset-0 bg-black/0 group-hover/img:bg-black/35 transition-all duration-300 flex items-center justify-center">

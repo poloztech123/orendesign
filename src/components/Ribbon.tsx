@@ -4,31 +4,16 @@ import { ArchitecturalPlan } from '../types';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { formatSqft } from '../utils/sqft';
 
-export const DEFAULT_TRENDING_IDS = [
-  "topclass-residential",
-  "virelia-grand",
-  "modern-tropical",
-  "aurora-crest",
-  "luxury-classical"
-];
+export const DEFAULT_TRENDING_IDS: string[] = [];
 
-export const DEFAULT_MOST_VIEWED_IDS = [
-  "cascadia-resort",
-  "azure-oasis",
-  "luxury-neoclassical",
-  "modern-3bed"
-];
+export const DEFAULT_MOST_VIEWED_IDS: string[] = [];
 
 export const isPlanTrending = (p: ArchitecturalPlan) => {
-  if (p.isTrending === true) return true;
-  if (p.isTrending === false) return false;
-  return DEFAULT_TRENDING_IDS.includes(p.id);
+  return p.isTrending === true;
 };
 
 export const isPlanMostViewed = (p: ArchitecturalPlan) => {
-  if (p.isMostViewed === true) return true;
-  if (p.isMostViewed === false) return false;
-  return DEFAULT_MOST_VIEWED_IDS.includes(p.id);
+  return p.isMostViewed === true;
 };
 
 interface RibbonProps {
@@ -136,21 +121,23 @@ export default function Ribbon({ plans, onSelectPlan, onImageClick }: RibbonProp
             
             {trendingPlans.map((item) => {
               const realPlan = catalogPlans.find(p => p.id === item.id);
-              const bgImg = realPlan?.image || "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=1200";
+              const bgImg = realPlan?.image || "";
               return (
                 <button
                   key={item.id}
                   onClick={() => handleCardClick(item.id)}
-                  className="relative flex-shrink-0 w-[240px] sm:w-[280px] aspect-[3/4] rounded-2xl overflow-hidden snap-start group cursor-pointer text-left focus:outline-none transition-all duration-300 hover:scale-[1.02] shadow-[0_8px_30px_rgb(0,0,0,0.3)] border border-stone-900"
+                  className="relative flex-shrink-0 w-[240px] sm:w-[280px] aspect-[3/4] rounded-2xl overflow-hidden snap-start group cursor-pointer text-left focus:outline-none transition-all duration-300 hover:scale-[1.02] shadow-[0_8px_30px_rgb(0,0,0,0.3)] border border-stone-900 bg-stone-900"
                   id={`trending-card-${item.id}`}
                 >
                   {/* Background Image */}
-                  <img
-                    src={bgImg}
-                    alt={item.displayName}
-                    referrerPolicy="no-referrer"
-                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
+                  {bgImg ? (
+                    <img
+                      src={bgImg}
+                      alt={item.displayName}
+                      referrerPolicy="no-referrer"
+                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                  ) : null}
                   {/* Gradient Overlay */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
                   
@@ -211,21 +198,23 @@ export default function Ribbon({ plans, onSelectPlan, onImageClick }: RibbonProp
           >
             {mostViewedPlans.map((item) => {
               const realPlan = catalogPlans.find(p => p.id === item.id);
-              const bgImg = realPlan?.image || "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=1200";
+              const bgImg = realPlan?.image || "";
               return (
                 <button
                   key={item.id}
                   onClick={() => handleCardClick(item.id)}
-                  className="relative flex-shrink-0 w-[240px] sm:w-[280px] aspect-[3/4] rounded-2xl overflow-hidden snap-start group cursor-pointer text-left focus:outline-none transition-all duration-300 hover:scale-[1.02] shadow-[0_8px_30px_rgb(0,0,0,0.3)] border border-stone-900"
+                  className="relative flex-shrink-0 w-[240px] sm:w-[280px] aspect-[3/4] rounded-2xl overflow-hidden snap-start group cursor-pointer text-left focus:outline-none transition-all duration-300 hover:scale-[1.02] shadow-[0_8px_30px_rgb(0,0,0,0.3)] border border-stone-900 bg-stone-900"
                   id={`mostviewed-card-${item.id}`}
                 >
                   {/* Background Image */}
-                  <img
-                    src={bgImg}
-                    alt={item.displayName}
-                    referrerPolicy="no-referrer"
-                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
+                  {bgImg ? (
+                    <img
+                      src={bgImg}
+                      alt={item.displayName}
+                      referrerPolicy="no-referrer"
+                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                  ) : null}
                   {/* Gradient Overlay */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
                   

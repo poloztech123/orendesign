@@ -156,21 +156,49 @@ export default function FAQAndTestimonials({
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center" id="testimonial-slider-container">
-            {/* Built image with overlay */}
-            <div className="md:col-span-5 relative aspect-[4/3] sm:aspect-[16/10] md:aspect-square bg-stone-200 rounded-xl overflow-hidden shadow-md">
-              <img
-                src={currentTestimonial.image}
-                alt={currentTestimonial.clientName}
-                referrerPolicy="no-referrer"
-                className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
-              />
-              <div className="absolute bottom-3 left-3 bg-stone-900/80 backdrop-blur-md text-stone-200 px-3 py-1.5 rounded text-[10px] font-mono border border-white/10 uppercase">
-                {currentTestimonial.location}
-              </div>
+            {/* Testimonial Badge Box */}
+            <div className="md:col-span-4 relative aspect-[4/3] sm:aspect-[16/10] md:aspect-square bg-stone-900 rounded-xl overflow-hidden shadow-md flex flex-col justify-between p-6 text-white border border-stone-800">
+              {currentTestimonial.image ? (
+                <img
+                  src={currentTestimonial.image}
+                  alt={currentTestimonial.clientName}
+                  referrerPolicy="no-referrer"
+                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 hover:scale-105"
+                />
+              ) : (
+                <>
+                  <div className="flex justify-between items-start">
+                    <span className="font-mono text-[10px] tracking-widest text-[#84e114] uppercase font-bold">
+                      Verified Client
+                    </span>
+                    <div className="flex gap-0.5">
+                      {[...Array(currentTestimonial.rating)].map((_, i) => (
+                        <Star key={i} className="h-3.5 w-3.5 text-amber-400 fill-current" />
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="my-auto text-center py-4">
+                    <div className="w-14 h-14 mx-auto rounded-full bg-[#1B4332] text-white flex items-center justify-center font-serif text-xl font-bold border border-white/20 mb-3">
+                      {currentTestimonial.clientName.charAt(0)}
+                    </div>
+                    <div className="font-display font-medium text-stone-200 text-sm">
+                      {currentTestimonial.clientName}
+                    </div>
+                    <div className="font-mono text-[10px] text-stone-400 uppercase mt-0.5">
+                      {currentTestimonial.location}
+                    </div>
+                  </div>
+
+                  <div className="bg-stone-950/80 backdrop-blur-md text-stone-300 px-3 py-1.5 rounded text-[10px] font-mono border border-white/10 uppercase text-center truncate">
+                    {currentTestimonial.project}
+                  </div>
+                </>
+              )}
             </div>
 
             {/* Testimonial comments & controls */}
-            <div className="md:col-span-7 flex flex-col justify-between h-full space-y-6">
+            <div className="md:col-span-8 flex flex-col justify-between h-full space-y-6">
               <div className="space-y-4">
                 {/* Star rating icons */}
                 <div className="flex gap-1">

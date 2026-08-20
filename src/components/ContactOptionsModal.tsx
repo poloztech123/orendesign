@@ -25,13 +25,15 @@ export default function ContactOptionsModal({ plan, onClose, onExplore }: Contac
       <div className="bg-white rounded-2xl w-full max-w-md border border-stone-200 shadow-2xl overflow-hidden relative animate-scale-up text-left flex flex-col">
         
         {/* Header Preview of Plan */}
-        <div className="relative aspect-[16/10] w-full bg-stone-100 overflow-hidden">
-          <img
-            src={plan.image}
-            alt={plan.name}
-            referrerPolicy="no-referrer"
-            className="w-full h-full object-cover"
-          />
+        <div className="relative aspect-[16/10] w-full bg-stone-900 overflow-hidden">
+          {plan.image ? (
+            <img
+              src={plan.image}
+              alt={plan.name}
+              referrerPolicy="no-referrer"
+              className="w-full h-full object-cover"
+            />
+          ) : null}
           <div className="absolute inset-0 bg-gradient-to-t from-stone-950 via-stone-950/40 to-transparent" />
           
           {/* Close button inside image */}

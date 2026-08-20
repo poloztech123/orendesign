@@ -82,19 +82,9 @@ export default function PlanDetailModal({
     onAddToCart(plan, selectedLicense, finalPrice);
   };
 
-  // Helper functions for displaying realistic local specifications as requested in screenshot
+  // Helper functions for displaying specifications
   const getPlanLocation = (plan: ArchitecturalPlan) => {
-    if (plan.id === 'virelia-grand') return 'Brookland, UK';
-    if (plan.id === 'obsidian') return 'Lake Tahoe, CA';
-    if (plan.id === 'crestview') return 'Malibu, CA';
-    if (plan.id === 'modern-tropical') return 'Ubud, Bali';
-    if (plan.id === 'aurora-crest') return 'Aspen, CO';
-    if (plan.id === 'luxury-classical') return 'Florence, Italy';
-    if (plan.id === 'cascadia-resort') return 'Cascade Range, OR';
-    if (plan.id === 'azure-oasis') return 'Santorini, Greece';
-    if (plan.id === 'luxury-neoclassical') return 'Versailles, France';
-    if (plan.id === 'modern-3bed') return 'Kampala, Uganda';
-    return 'Entebbe, Uganda';
+    return 'Location upon request';
   };
 
   const getBuiltUpArea = (plan: ArchitecturalPlan) => {
@@ -110,29 +100,16 @@ export default function PlanDetailModal({
   };
 
   const getProjectYear = (plan: ArchitecturalPlan) => {
-    if (plan.id === 'virelia-grand') return '2022';
-    if (plan.id === 'obsidian') return '2023';
-    if (plan.id === 'crestview') return '2024';
-    if (plan.id === 'modern-tropical') return '2023';
-    if (plan.id === 'aurora-crest') return '2024';
-    if (plan.id === 'luxury-classical') return '2021';
-    if (plan.id === 'cascadia-resort') return '2024';
-    if (plan.id === 'azure-oasis') return '2023';
-    if (plan.id === 'luxury-neoclassical') return '2022';
     return '2025';
   };
 
   const getProjectStatus = (plan: ArchitecturalPlan) => {
-    if (plan.id === 'virelia-grand') return 'Design Stage';
-    if (plan.id === 'obsidian') return 'Permit Approved';
-    if (plan.id === 'crestview') return 'Builder Ready';
     if (plan.category === 'Hospitality' || plan.category === 'Commercial') return 'Design Stage';
     return 'Builder Ready';
   };
 
   const getProjectFloors = (plan: ArchitecturalPlan) => {
-    if (plan.id === 'virelia-grand') return '29';
-    return String(plan.stories);
+    return String(plan.stories || 1);
   };
 
   const getCategoryLabel = (cat: string) => {
@@ -191,7 +168,9 @@ export default function PlanDetailModal({
               className="relative h-[250px] sm:h-[350px] md:h-[420px] lg:h-[480px] w-full bg-stone-900 overflow-hidden rounded-2xl border border-stone-850 shadow-[0_4px_30px_rgba(0,0,0,0.5)] flex flex-col justify-end p-6 sm:p-10 md:p-12 transition-all duration-300"
             >
               {/* Cover Background Image or Video walk-through */}
-              {mediaItems[activeSlideIdx]?.type === 'video' ? (
+              {mediaItems.length === 0 ? (
+                <div className="absolute inset-0 bg-stone-900" />
+              ) : mediaItems[activeSlideIdx]?.type === 'video' ? (
                 isDataVideo(mediaItems[activeSlideIdx].url) ? (
                   <video
                     src={mediaItems[activeSlideIdx].url}
@@ -219,13 +198,15 @@ export default function PlanDetailModal({
                     muted
                   />
                 )
-              ) : (
+              ) : mediaItems[activeSlideIdx]?.url ? (
                 <img
-                  src={mediaItems[activeSlideIdx]?.url}
+                  src={mediaItems[activeSlideIdx].url}
                   alt={plan.name}
                   referrerPolicy="no-referrer"
                   className="absolute inset-0 h-full w-full object-cover transition-all duration-500"
                 />
+              ) : (
+                <div className="absolute inset-0 bg-stone-900" />
               )}
               {/* Elegant dark gradient overlay for typography visibility */}
               <div className="absolute inset-0 bg-gradient-to-t from-stone-950 via-stone-950/40 to-transparent pointer-events-none" />

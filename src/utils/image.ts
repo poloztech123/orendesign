@@ -1,11 +1,11 @@
-export const DEFAULT_FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80';
+export const DEFAULT_FALLBACK_IMAGE = '';
 
 /**
  * Formats image URLs safely so they render reliably on local dev, Cloud Run, and GitHub Pages subpaths.
  */
 export function formatImageUrl(url?: string): string {
   if (!url || typeof url !== 'string' || url.trim() === '') {
-    return DEFAULT_FALLBACK_IMAGE;
+    return '';
   }
   const trimmed = url.trim();
 
@@ -32,7 +32,7 @@ export function formatImageUrl(url?: string): string {
  */
 export function formatImageUrls(urls?: string[]): string[] {
   if (!urls || !Array.isArray(urls) || urls.length === 0) {
-    return [DEFAULT_FALLBACK_IMAGE];
+    return [];
   }
-  return urls.map((u) => formatImageUrl(u));
+  return urls.map((u) => formatImageUrl(u)).filter(Boolean);
 }

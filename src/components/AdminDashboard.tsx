@@ -67,9 +67,7 @@ const ALL_CATEGORIES = [
 ];
 
 // Aesthetic architectural placeholder images
-const PRESET_IMAGES = [
-  ''
-];
+const PRESET_IMAGES: string[] = [];
 
 const compressImage = (file: File, maxWidth = 800, maxHeight = 800, quality = 0.65): Promise<string> => {
   return new Promise((resolve, reject) => {
@@ -1068,12 +1066,18 @@ CREATE POLICY "Public Storage Delete" ON storage.objects FOR DELETE USING (bucke
                         key={p.id}
                         className="flex flex-col sm:flex-row bg-stone-950/40 border border-stone-850 rounded-xl p-3.5 gap-4 hover:border-stone-800 transition-colors"
                       >
-                        <img
-                          src={p.image}
-                          alt={p.name}
-                          referrerPolicy="no-referrer"
-                          className="h-24 w-36 object-cover rounded-lg border border-stone-800 shrink-0 self-center sm:self-start"
-                        />
+                        {p.image ? (
+                          <img
+                            src={p.image}
+                            alt={p.name}
+                            referrerPolicy="no-referrer"
+                            className="h-24 w-36 object-cover rounded-lg border border-stone-800 shrink-0 self-center sm:self-start"
+                          />
+                        ) : (
+                          <div className="h-24 w-36 bg-stone-900 rounded-lg border border-stone-800 shrink-0 self-center sm:self-start flex items-center justify-center text-[10px] font-mono text-stone-600">
+                            NO IMAGE
+                          </div>
+                        )}
                         <div className="flex-1 min-w-0 text-left flex flex-col justify-between">
                           <div>
                             <div className="flex items-center flex-wrap gap-2">
@@ -1470,33 +1474,35 @@ CREATE POLICY "Public Storage Delete" ON storage.objects FOR DELETE USING (bucke
                       />
                     </div>
 
-                    <div>
-                      <span className="block text-[10px] font-mono text-stone-500 uppercase mb-2">Add Preset to Gallery:</span>
-                      <div className="flex gap-2 overflow-x-auto py-1 scrollbar-none">
-                        {PRESET_IMAGES.map((img, idx) => {
-                          const alreadyIn = images.includes(img);
-                          return (
-                            <button
-                              key={idx}
-                              type="button"
-                              disabled={alreadyIn}
-                              onClick={() => setImages(prev => [...prev, img])}
-                              className={`h-14 w-20 rounded border transition-all shrink-0 cursor-pointer overflow-hidden relative ${
-                                alreadyIn ? 'opacity-40 border-stone-900' : 'border-stone-800 hover:border-stone-600'
-                              }`}
-                              title={alreadyIn ? "Already in project gallery" : "Add to gallery"}
-                            >
-                              <img src={img} alt="preset preview" className="h-full w-full object-cover" />
-                              {!alreadyIn && (
-                                <div className="absolute inset-0 bg-black/45 hover:bg-transparent flex items-center justify-center text-white text-[10px] font-bold">
-                                  + Add
-                                </div>
-                              )}
-                            </button>
-                          );
-                        })}
+                    {PRESET_IMAGES.length > 0 && (
+                      <div>
+                        <span className="block text-[10px] font-mono text-stone-500 uppercase mb-2">Add Preset to Gallery:</span>
+                        <div className="flex gap-2 overflow-x-auto py-1 scrollbar-none">
+                          {PRESET_IMAGES.map((img, idx) => {
+                            const alreadyIn = images.includes(img);
+                            return (
+                              <button
+                                key={idx}
+                                type="button"
+                                disabled={alreadyIn}
+                                onClick={() => setImages(prev => [...prev, img])}
+                                className={`h-14 w-20 rounded border transition-all shrink-0 cursor-pointer overflow-hidden relative ${
+                                  alreadyIn ? 'opacity-40 border-stone-900' : 'border-stone-800 hover:border-stone-600'
+                                }`}
+                                title={alreadyIn ? "Already in project gallery" : "Add to gallery"}
+                              >
+                                <img src={img} alt="preset preview" className="h-full w-full object-cover" />
+                                {!alreadyIn && (
+                                  <div className="absolute inset-0 bg-black/45 hover:bg-transparent flex items-center justify-center text-white text-[10px] font-bold">
+                                    + Add
+                                  </div>
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 </div>
 

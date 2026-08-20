@@ -177,7 +177,9 @@ export default function ImageLightbox({ plan, initialIndex, isOpen, onClose }: I
 
         {/* Center Active Media */}
         <div className="relative w-full h-full flex items-center justify-center overflow-hidden rounded-2xl border border-stone-900 shadow-2xl bg-stone-950">
-          {mediaItems[activeIndex]?.type === 'video' ? (
+          {mediaItems.length === 0 ? (
+            <div className="text-stone-500 text-sm font-mono">No media available</div>
+          ) : mediaItems[activeIndex]?.type === 'video' ? (
             isDataVideo(mediaItems[activeIndex].url) ? (
               <video
                 src={mediaItems[activeIndex].url}
@@ -208,15 +210,15 @@ export default function ImageLightbox({ plan, initialIndex, isOpen, onClose }: I
                 key={mediaItems[activeIndex].url}
               />
             )
-          ) : (
+          ) : mediaItems[activeIndex]?.url ? (
             <img
-              src={mediaItems[activeIndex]?.url}
+              src={mediaItems[activeIndex].url}
               alt={`${plan.name} photo detail`}
               referrerPolicy="no-referrer"
               className="max-w-full max-h-full object-contain select-none animate-scale-up"
-              key={mediaItems[activeIndex]?.url} // Force component remount to trigger animate-scale-up
+              key={mediaItems[activeIndex].url} // Force component remount to trigger animate-scale-up
             />
-          )}
+          ) : null}
         </div>
 
         {/* Next Button */}

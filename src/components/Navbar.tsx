@@ -282,12 +282,18 @@ export default function Navbar({
                             }}
                             className="flex gap-3 p-2 hover:bg-stone-50 rounded-xl transition-all group cursor-pointer border border-transparent hover:border-stone-100"
                           >
-                            <img
-                              src={plan.image}
-                              alt={plan.name}
-                              referrerPolicy="no-referrer"
-                              className="h-11 w-16 object-cover rounded-lg border border-stone-100 shrink-0"
-                            />
+                            {plan.image ? (
+                              <img
+                                src={plan.image}
+                                alt={plan.name}
+                                referrerPolicy="no-referrer"
+                                className="h-11 w-16 object-cover rounded-lg border border-stone-100 shrink-0"
+                              />
+                            ) : (
+                              <div className="h-11 w-16 bg-stone-100 rounded-lg border border-stone-200 shrink-0 flex items-center justify-center text-[8px] font-mono text-stone-400">
+                                PLAN
+                              </div>
+                            )}
                             <div className="flex-1 min-w-0 text-left">
                               <h4 className="font-display font-medium text-xs text-stone-900 truncate group-hover:text-[#84e114] transition-colors">
                                 {plan.name}

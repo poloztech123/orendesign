@@ -399,6 +399,7 @@ export default function App() {
               initialBeds={searchParams.beds}
               initialBaths={searchParams.baths}
               initialMaxSqft={searchParams.maxSqft}
+              featuredImages={plans.map((p) => p.image).filter(Boolean)}
             />
 
             {/* Section 2: Trending & Most Viewed Section */}
@@ -406,6 +407,7 @@ export default function App() {
 
             {/* Section 3: Featured Collections Visual Grid */}
             <Collections
+              plans={plans}
               onSelectStyle={setActiveStyle}
               activeStyle={activeStyle}
             />
