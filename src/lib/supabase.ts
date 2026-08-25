@@ -44,7 +44,7 @@ export function getSupabaseClient(): SupabaseClient | null {
 
 // Convert DB row to ArchitecturalPlan
 export function mapRowToPlan(row: any): ArchitecturalPlan {
-  const imageUrl = row.image_url || row.image || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80';
+  const imageUrl = row.image_url || row.image || '';
   return {
     id: String(row.id),
     name: row.title || row.name || 'Untitled Design',
@@ -306,6 +306,30 @@ export async function deleteProjectFromSupabase(id: string): Promise<{ success: 
 
   try {
     const { error } = await supabase.from('projects').delete().eq('id', id);
+    if (error) return { success: false, error: error.message };
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err?.message || String(err) };
+  }
+}
+
+// Clear all projects from Supabase table
+export async function clearAllProjectsFromSupabase(): Promise<{ success: boolean; error?: string }> {
+  // 1. Try server route
+  try {
+    const res = await fetch('/api/supabase/projects', { method: 'DELETE' });
+    if (res.ok) {
+      const json = await res.json();
+      if (json.success) return { success: true };
+    }
+  } catch (_) {}
+
+  // 2. Direct client fallback
+  const supabase = getSupabaseClient();
+  if (!supabase) return { success: false, error: 'Supabase client not configured' };
+
+  try {
+    const { error } = await supabase.from('projects').delete().neq('id', 'placeholder_none');
     if (error) return { success: false, error: error.message };
     return { success: true };
   } catch (err: any) {

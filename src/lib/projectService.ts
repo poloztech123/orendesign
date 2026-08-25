@@ -5,6 +5,7 @@ import {
   fetchProjectsFromSupabase, 
   saveProjectToSupabase, 
   deleteProjectFromSupabase, 
+  clearAllProjectsFromSupabase,
   subscribeToSupabaseProjects 
 } from './supabase';
 import { 
@@ -20,9 +21,11 @@ import {
   addPlanToFirestore, 
   updatePlanInFirestore, 
   deletePlanFromFirestore, 
+  clearAllPlansFromFirestore,
   getStoredPlans, 
   saveStoredPlans 
 } from './firebase';
+import { saveProjectsToGitHub } from './githubService';
 
 /**
  * Upload an image (or file) to Cloud Storage (Supabase Storage or Firebase Storage),
@@ -161,6 +164,36 @@ export async function deleteProject(id: string): Promise<void> {
   }
 
   await deletePlanFromFirestore(id);
+}
+
+/**
+ * Completely clear/purge all projects from all data sources (Supabase, Firebase, Server, GitHub, LocalStorage)
+ */
+export async function clearAllProjects(): Promise<void> {
+  // 1. Supabase
+  if (isSupabaseConfigured()) {
+    try {
+      await clearAllProjectsFromSupabase();
+    } catch (e) {
+      console.warn("Error clearing Supabase table:", e);
+    }
+  }
+
+  // 2. Server & Local storage
+  try {
+    await clearAllPlansFromFirestore();
+  } catch (e) {
+    console.warn("Error clearing server/firestore plans:", e);
+  }
+
+  // 3. GitHub repository
+  try {
+    await saveProjectsToGitHub([]);
+  } catch (e) {
+    console.warn("Error syncing empty catalog to GitHub:", e);
+  }
+
+  saveStoredPlans([]);
 }
 
 /**

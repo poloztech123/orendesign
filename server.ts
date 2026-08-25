@@ -691,6 +691,34 @@ app.delete('/api/supabase/projects/:id', async (req, res) => {
   }
 });
 
+// DELETE /api/supabase/projects - Delete/purge all projects from Supabase database table
+app.delete('/api/supabase/projects', async (req, res) => {
+  const { url: supaUrl, key: supaKey } = getServerSupabaseConfig();
+
+  if (!supaUrl || !supaKey) {
+    return res.status(500).json({ success: false, error: 'Supabase credentials not configured' });
+  }
+
+  try {
+    const response = await fetch(`${supaUrl}/rest/v1/projects?id=neq.placeholder_none`, {
+      method: 'DELETE',
+      headers: {
+        'apikey': supaKey,
+        'Authorization': `Bearer ${supaKey}`
+      }
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      return res.status(response.status).json({ success: false, error: errText });
+    }
+
+    return res.json({ success: true, message: 'All projects deleted from Supabase.' });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // ================= SERVER BOOTSTRAP =================
 
 async function startServer() {

@@ -159,12 +159,38 @@ export default function FAQAndTestimonials({
             {/* Testimonial Badge Box */}
             <div className="md:col-span-4 relative aspect-[4/3] sm:aspect-[16/10] md:aspect-square bg-stone-900 rounded-xl overflow-hidden shadow-md flex flex-col justify-between p-6 text-white border border-stone-800">
               {currentTestimonial.image ? (
-                <img
-                  src={currentTestimonial.image}
-                  alt={currentTestimonial.clientName}
-                  referrerPolicy="no-referrer"
-                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 hover:scale-105"
-                />
+                <>
+                  <img
+                    src={currentTestimonial.image}
+                    alt={currentTestimonial.clientName}
+                    referrerPolicy="no-referrer"
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-black/20" />
+                  
+                  <div className="relative z-10 flex justify-between items-start">
+                    <span className="font-mono text-[10px] tracking-widest text-[#84e114] uppercase font-bold bg-black/60 backdrop-blur-md px-2.5 py-1 rounded">
+                      Verified Build
+                    </span>
+                    <div className="flex gap-0.5 bg-black/60 backdrop-blur-md px-2 py-1 rounded">
+                      {[...Array(currentTestimonial.rating)].map((_, i) => (
+                        <Star key={i} className="h-3.5 w-3.5 text-amber-400 fill-current" />
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="relative z-10 space-y-1">
+                    <div className="font-display font-semibold text-white text-base">
+                      {currentTestimonial.clientName}
+                    </div>
+                    <div className="font-mono text-[11px] text-[#84e114] uppercase font-bold truncate">
+                      {currentTestimonial.project}
+                    </div>
+                    <div className="font-mono text-[10px] text-stone-300">
+                      {currentTestimonial.location}
+                    </div>
+                  </div>
+                </>
               ) : (
                 <>
                   <div className="flex justify-between items-start">

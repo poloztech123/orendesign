@@ -31,13 +31,15 @@ import {
   ExternalLink,
   Copy,
   HardDrive,
-  LogOut
+  LogOut,
+  Save,
+  Download
 } from 'lucide-react';
 import { ArchitecturalPlan } from '../types';
 import { formatSqft } from '../utils/sqft';
 import { isPlanTrending, isPlanMostViewed } from './Ribbon';
 import { getEmbedVideoUrl, isEmbedVideo, isDataVideo } from '../utils/video';
-import { uploadMediaToStorage, clearAllPlansFromFirestore, getStoredInquiries, publishPlansToGitHubApi, blobToDataUrl } from '../lib/firebase';
+import { uploadMediaToStorage, clearAllPlansFromFirestore, getStoredInquiries, blobToDataUrl } from '../lib/firebase';
 import { 
   testSupabaseConnection, 
   syncCatalogToSupabase, 
@@ -124,7 +126,6 @@ export default function AdminDashboard({
   const [activeTab, setActiveTab] = useState<'list' | 'add' | 'inquiries' | 'cloud'>('list');
   const [editingPlan, setEditingPlan] = useState<ArchitecturalPlan | null>(null);
   const [successMsg, setSuccessMsg] = useState('');
-  const [isSyncingGithub, setIsSyncingGithub] = useState(false);
 
   // Supabase Cloud State
   const [supabaseTestStatus, setSupabaseTestStatus] = useState<{
@@ -288,20 +289,6 @@ CREATE POLICY "Public Storage Delete" ON storage.objects FOR DELETE USING (bucke
     navigator.clipboard.writeText(sql);
     setCopiedSql(true);
     setTimeout(() => setCopiedSql(false), 3000);
-  };
-
-  const handleSyncToGithub = async () => {
-    setIsSyncingGithub(true);
-    setSuccessMsg('Publishing latest catalog changes live...');
-    try {
-      const res = await publishPlansToGitHubApi(plans);
-      setSuccessMsg(res.message);
-      setTimeout(() => setSuccessMsg(''), 6000);
-    } catch (err: any) {
-      alert('Publish notice: ' + (err.message || 'Updated locally.'));
-    } finally {
-      setIsSyncingGithub(false);
-    }
   };
 
   // Authentication States - Always require fresh login whenever opened
@@ -1842,7 +1829,7 @@ CREATE POLICY "Public Storage Delete" ON storage.objects FOR DELETE USING (bucke
             </div>
           )}
 
-          {/* TAB 4: SUPABASE CLOUD DATABASE & STORAGE */}
+          {/* TAB 3: SUPABASE CLOUD DATABASE & STORAGE */}
           {activeTab === 'cloud' && (
             <div className="space-y-6 text-left">
               {/* Header card */}

@@ -38,7 +38,7 @@ export const TESTIMONIALS: Testimonial[] = [
     "project": "Obsidian Blueprint Customization",
     "quote": "Building our dream home felt daunting, but the blueprint package was immaculate. Our structural engineer was highly impressed by the framing layouts. We completed permitting with zero friction.",
     "rating": 5,
-    "image": ""
+    "image": "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&q=80&w=800"
   },
   {
     "id": "test-2",
@@ -47,7 +47,7 @@ export const TESTIMONIALS: Testimonial[] = [
     "project": "Crestview Pavilion Project",
     "quote": "As a lover of mid-century minimalism, the CAD files were clean, accurate, and immediately compatible with our engineer's workflow. The outcome matches the drafting layouts precisely.",
     "rating": 5,
-    "image": ""
+    "image": "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&q=80&w=800"
   },
   {
     "id": "test-3",
@@ -56,6 +56,6 @@ export const TESTIMONIALS: Testimonial[] = [
     "project": "Heritage Contemporary Build",
     "quote": "The structural documentation gave our general contractor everything needed for accurate materials estimating and rapid framing turnaround.",
     "rating": 5,
-    "image": ""
+    "image": "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&q=80&w=800"
   }
 ];

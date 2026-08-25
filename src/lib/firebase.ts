@@ -1,5 +1,6 @@
 import { ArchitecturalPlan } from '../types';
 import { ARCHITECTURAL_PLANS } from '../data';
+import { saveProjectsToGitHub, fetchProjectsFromGitHub } from './githubService';
 
 const PLANS_STORAGE_KEY = 'oren_catalog_plans_store';
 const INQUIRIES_STORAGE_KEY = 'oren_inquiries_store';
@@ -99,7 +100,7 @@ export function unmarkPlanAsDeleted(id: string): void {
 }
 
 /**
- * Fetch plans from server API, static JSON files, or GitHub raw CDN with local storage fallback
+ * Fetch plans from server API, static JSON files, or GitHub raw CDN / REST API with local storage fallback
  */
 export async function fetchPlansFromApi(): Promise<ArchitecturalPlan[]> {
   let remotePlans: ArchitecturalPlan[] | null = null;
@@ -117,7 +118,19 @@ export async function fetchPlansFromApi(): Promise<ArchitecturalPlan[]> {
     // Expected on static hosts like GitHub Pages
   }
 
-  // 2. Try static data/plans.json on current domain (e.g., GitHub Pages site)
+  // 2. Try fetching live directly from GitHub REST API / Raw CDN
+  if (!remotePlans) {
+    try {
+      const ghPlans = await fetchProjectsFromGitHub();
+      if (ghPlans && Array.isArray(ghPlans)) {
+        remotePlans = ghPlans;
+      }
+    } catch (err) {
+      // Ignore
+    }
+  }
+
+  // 3. Try static data/plans.json on current domain (e.g., GitHub Pages site)
   if (!remotePlans) {
     try {
       const staticRes = await fetch(`./data/plans.json?t=${Date.now()}`);
@@ -125,21 +138,6 @@ export async function fetchPlansFromApi(): Promise<ArchitecturalPlan[]> {
         const staticData = await staticRes.json();
         if (Array.isArray(staticData)) {
           remotePlans = staticData;
-        }
-      }
-    } catch (err) {
-      // Ignore
-    }
-  }
-
-  // 3. Try fetching live from GitHub repository raw content directly
-  if (!remotePlans) {
-    try {
-      const ghRes = await fetch(`https://raw.githubusercontent.com/poloztech123/orendesign/main/data/plans.json?t=${Date.now()}`);
-      if (ghRes.ok) {
-        const ghData = await ghRes.json();
-        if (Array.isArray(ghData)) {
-          remotePlans = ghData;
         }
       }
     } catch (err) {
@@ -160,14 +158,14 @@ export async function fetchPlansFromApi(): Promise<ArchitecturalPlan[]> {
  * Synchronous local storage reader for initial rendering before network fetch completes
  */
 export function getStoredPlans(): ArchitecturalPlan[] {
-  if (memoryPlansCache && memoryPlansCache.length > 0) {
+  if (memoryPlansCache !== null && Array.isArray(memoryPlansCache)) {
     return memoryPlansCache;
   }
   try {
     const raw = localStorage.getItem(PLANS_STORAGE_KEY);
-    if (raw) {
+    if (raw !== null) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) {
+      if (Array.isArray(parsed)) {
         memoryPlansCache = parsed;
         return parsed;
       }
@@ -175,7 +173,7 @@ export function getStoredPlans(): ArchitecturalPlan[] {
   } catch (err) {
     console.warn("Failed to read plans from localStorage:", err);
   }
-  return ARCHITECTURAL_PLANS;
+  return [];
 }
 
 export function saveStoredPlans(plans: ArchitecturalPlan[]): void {
@@ -201,7 +199,7 @@ export async function seedInitialPlansIfNeeded(): Promise<ArchitecturalPlan[]> {
  * Publish plans to GitHub repository and GitHub Pages
  */
 export async function publishPlansToGitHubApi(plans: ArchitecturalPlan[]): Promise<{ success: boolean; message: string }> {
-  // 1. Try server endpoint first
+  // 1. Try server endpoint first if running full-stack
   try {
     const serverRes = await fetch('/api/deploy-github', {
       method: 'POST',
@@ -212,88 +210,19 @@ export async function publishPlansToGitHubApi(plans: ArchitecturalPlan[]): Promi
       const result = await serverRes.json();
       if (result.success) {
         saveStoredPlans(plans);
+        // Also ensure client-side GitHub direct commit runs if configured
+        saveProjectsToGitHub(plans).catch(() => {});
         return { success: true, message: result.message || 'Published live successfully!' };
       }
     }
   } catch (err) {
-    console.warn("Server deployment endpoint unavailable, attempting direct API commit:", err);
+    // Server deployment endpoint unavailable, attempting direct API commit
   }
 
-  // 2. Direct GitHub REST API fallback for static environments
-  const GITHUB_TOKEN = (typeof window !== 'undefined' ? (localStorage.getItem('oren_github_token') || localStorage.getItem('oren_gh_token')) : '') || '';
-  if (!GITHUB_TOKEN) {
-    return {
-      success: false,
-      message: 'GitHub Personal Access Token not configured.',
-    };
-  }
-  const REPO = 'poloztech123/orendesign';
-  const jsonContent = JSON.stringify(plans, null, 2);
-  
-  // Base64 helper for browser Unicode strings
-  const utf8ToB64 = (str: string) => {
-    return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (_, p1) => String.fromCharCode(parseInt(p1, 16))));
-  };
-  const base64Content = utf8ToB64(jsonContent);
-
-  const filesToUpdate = ['data/plans.json', 'public/data/plans.json', 'docs/data/plans.json'];
-  const branches = ['main', 'gh-pages'];
-
-  let successCount = 0;
-
-  for (const branch of branches) {
-    for (const path of filesToUpdate) {
-      try {
-        const getRes = await fetch(`https://api.github.com/repos/${REPO}/contents/${path}?ref=${branch}`, {
-          headers: {
-            'Authorization': `token ${GITHUB_TOKEN}`,
-            'Accept': 'application/vnd.github.v3+json',
-          },
-        });
-
-        let sha: string | undefined = undefined;
-        if (getRes.ok) {
-          const fileData = await getRes.json();
-          sha = fileData.sha;
-        }
-
-        const putRes = await fetch(`https://api.github.com/repos/${REPO}/contents/${path}`, {
-          method: 'PUT',
-          headers: {
-            'Authorization': `token ${GITHUB_TOKEN}`,
-            'Content-Type': 'application/json',
-            'Accept': 'application/vnd.github.v3+json',
-          },
-          body: JSON.stringify({
-            message: `Admin update plans catalog: ${path}`,
-            content: base64Content,
-            sha: sha,
-            branch: branch,
-          }),
-        });
-
-        if (putRes.ok) {
-          successCount++;
-        }
-      } catch (e) {
-        console.warn(`Failed updating ${path} on ${branch}:`, e);
-      }
-    }
-  }
-
+  // 2. Direct GitHub REST API integration for static / GitHub Pages environments
+  const ghResult = await saveProjectsToGitHub(plans);
   saveStoredPlans(plans);
-
-  if (successCount > 0) {
-    return {
-      success: true,
-      message: `Successfully published plans live! Changes will appear live in 1-2 minutes.`,
-    };
-  }
-
-  return {
-    success: false,
-    message: 'Local cache updated. Publish failed or offline.',
-  };
+  return ghResult;
 }
 
 /**

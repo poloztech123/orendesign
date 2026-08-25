@@ -23,6 +23,7 @@ import {
   subscribeToRealtimeProjects, 
   saveProject, 
   deleteProject, 
+  clearAllProjects,
   fetchLiveProjects 
 } from './lib/projectService';
 
@@ -300,7 +301,7 @@ export default function App() {
   const handleClearAllPlans = async () => {
     setPlans([]);
     saveStoredPlans([]);
-    await clearAllPlansFromFirestore();
+    await clearAllProjects();
     const loaded = await fetchLiveProjects();
     setPlans(loaded);
   };
