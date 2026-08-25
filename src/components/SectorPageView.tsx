@@ -32,6 +32,7 @@ interface SectorPageViewProps {
 const SECTOR_SPECS: Record<string, {
   title: string;
   heroDesc: string;
+  heroImage: string;
   stats: { label: string; value: string }[];
   complianceTitle: string;
   complianceIntro: string;
@@ -40,6 +41,7 @@ const SECTOR_SPECS: Record<string, {
   Residential: {
     title: "Residential Blueprints",
     heroDesc: "Aesthetic single-family homes, modern villas, and contemporary farmhouses. Engineered for thermal efficiency, luxury living, and standard stick-frame construction speed.",
+    heroImage: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=1600",
     stats: [
       { label: "Permitting Approvals", value: "98.4%" },
       { label: "Insulation Standard", value: "R-21 / R-38" },
@@ -57,6 +59,7 @@ const SECTOR_SPECS: Record<string, {
   Hospitality: {
     title: "Hospitality & Eco-Resort Designs",
     heroDesc: "Modular luxury cabins, boutique hotels, and wellness pavilions. Designed to provide visitors with immersive nature retreats, acoustic comfort, and sustainable structural integrity.",
+    heroImage: "https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&q=80&w=1600",
     stats: [
       { label: "Occupancy Type", value: "IBC Group R-1" },
       { label: "Acoustic Rating", value: "STC 55+" },
@@ -74,6 +77,7 @@ const SECTOR_SPECS: Record<string, {
   Commercial: {
     title: "Commercial & Retail Office Pavilions",
     heroDesc: "Co-working hubs, multi-tenant retail centers, and modern office workspaces. Centered around flexible interior open layouts, visual prominence, and robust mechanical engineering bases.",
+    heroImage: "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=1600",
     stats: [
       { label: "Occupancy Types", value: "IBC Group B & M" },
       { label: "HVAC Exchange", value: "6x Air / Hr" },
@@ -91,6 +95,7 @@ const SECTOR_SPECS: Record<string, {
   Industrial: {
     title: "Industrial & Logistical Facilities",
     heroDesc: "Smart warehouses, high-clearance assembly hubs, and logistical centers. Engineered for high-load heavy machinery, multi-axle truck bays, and clear-span truss optimization.",
+    heroImage: "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&q=80&w=1600",
     stats: [
       { label: "Occupancy Type", value: "IBC Group S-1" },
       { label: "Clear Clearance", value: "24' - 28'" },
@@ -108,6 +113,7 @@ const SECTOR_SPECS: Record<string, {
   Educational: {
     title: "Educational Wings & STEM Pavilions",
     heroDesc: "Modern academy classrooms, circular lecture spaces, and school makerspaces. Optimized for student safety, natural daylight harvesting, and sound dampening.",
+    heroImage: "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&q=80&w=1600",
     stats: [
       { label: "Occupancy Type", value: "IBC Group E" },
       { label: "Lighting Factor", value: "65% Natural" },
@@ -125,6 +131,7 @@ const SECTOR_SPECS: Record<string, {
   Healthcare: {
     title: "Healthcare Clinics & Medical Suites",
     heroDesc: "Private medical practices, dentist rooms, and wellness clinics. Centered on patient privacy, sterile materials routing, and heavy electrical medical diagnostic utilities.",
+    heroImage: "https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&q=80&w=1600",
     stats: [
       { label: "Occupancy Type", value: "IBC Group I-1" },
       { label: "Air Filtration", value: "HEPA Active" },
@@ -142,6 +149,7 @@ const SECTOR_SPECS: Record<string, {
   Government: {
     title: "Government Halls & Civic Pavilions",
     heroDesc: "Municipal chambers, public offices, and civic community centers. Combining majestic heavy timber architecture with public prominence, accessibility, and structural longevity.",
+    heroImage: "https://images.unsplash.com/photo-1541829019-259276a7f085?auto=format&fit=crop&q=80&w=1600",
     stats: [
       { label: "Occupancy Type", value: "IBC Group A-3" },
       { label: "Life Expectancy", value: "100+ Years" },
@@ -213,19 +221,15 @@ export default function SectorPageView({
       
       {/* 1. SECTOR DEDICATED HERO */}
       <div className="relative bg-stone-950 text-white overflow-hidden py-24 sm:py-32">
-        {/* Abstract design elements or first project image */}
-        <div className="absolute inset-0 opacity-20">
-          {plans.length > 0 && plans[0].image ? (
-            <img 
-              src={plans[0].image} 
-              alt={spec.title} 
-              referrerPolicy="no-referrer"
-              className="w-full h-full object-cover" 
-            />
-          ) : (
-            <div className="w-full h-full bg-[radial-gradient(#1B4332_1px,transparent_1px)] [background-size:20px_20px]" />
-          )}
-          <div className="absolute inset-0 bg-gradient-to-r from-stone-950 via-stone-950/80 to-stone-950/40" />
+        {/* Abstract design elements or sector project image */}
+        <div className="absolute inset-0 opacity-30">
+          <img 
+            src={spec.heroImage || (plans.length > 0 ? plans[0].image : "")} 
+            alt={spec.title} 
+            referrerPolicy="no-referrer"
+            className="w-full h-full object-cover" 
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-stone-950 via-stone-950/85 to-stone-950/50" />
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
