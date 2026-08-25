@@ -145,7 +145,7 @@ function triggerGitHubDeploy(): Promise<boolean> {
 
     const setupGit = `git config user.email "admin@orendesignandbuild.com" && git config user.name "Oren Admin" && git branch -M main`;
     const checkAndRepairGit = `(git fsck --quick >/dev/null 2>&1 || (rm -rf .git && git init && ${setupGit}))`;
-    const buildAndPush = `VITE_GITHUB_TOKEN="" npx vite build --outDir docs && touch docs/.nojekyll && cp docs/index.html docs/404.html && git add . && (git commit -m "Auto-sync Admin catalog changes to GitHub Pages" || true) && git push -u ${remoteUrl} main --force && git push ${remoteUrl} \`git subtree split --prefix docs main\`:gh-pages --force`;
+    const buildAndPush = `VITE_GITHUB_TOKEN="" npx vite build --outDir docs && touch docs/.nojekyll && cp docs/index.html docs/404.html && git add . && (git commit -m "Auto-sync Admin catalog changes to GitHub Pages" || true) && git push -u ${remoteUrl} main --force && (git checkout -B gh-pages && cp -r docs/* . && git add -A && (git commit -m "Auto-sync Admin catalog changes to GitHub Pages" || true) && git push ${remoteUrl} gh-pages --force && git checkout main)`;
 
     const cmd = `${setupGit} && ${checkAndRepairGit} && (${buildAndPush} || (rm -rf .git && git init && ${setupGit} && ${buildAndPush}))`;
 
