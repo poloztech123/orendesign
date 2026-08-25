@@ -736,7 +736,13 @@ app.delete('/api/supabase/projects', async (req, res) => {
 // ================= SERVER BOOTSTRAP =================
 
 async function startServer() {
-  if (process.env.NODE_ENV !== 'production') {
+  const isProduction =
+    process.env.NODE_ENV === 'production' ||
+    __filename.endsWith('.cjs') ||
+    __filename.includes('/dist/') ||
+    __filename.endsWith('dist/server.cjs');
+
+  if (!isProduction) {
     const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
       server: { middlewareMode: true },
