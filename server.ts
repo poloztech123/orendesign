@@ -9,6 +9,20 @@ import { FAQ_ITEMS, TESTIMONIALS, ARCHITECTURAL_PLANS } from './src/data';
 const app = express();
 const PORT = 3000;
 
+// Health check endpoint for Cloud Run and platform monitors
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// Process-level guards against unexpected unhandled errors
+process.on('uncaughtException', (err) => {
+  console.error('Process uncaughtException:', err);
+});
+
+process.on('unhandledRejection', (reason) => {
+  console.error('Process unhandledRejection:', reason);
+});
+
 // Increase payload limit for base64 file uploads
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
