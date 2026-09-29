@@ -123,7 +123,7 @@ export default function App() {
   // Check URL pathname or hash to open the admin panel
   useEffect(() => {
     const handleUrlChange = () => {
-      const isPathAdmin = window.location.pathname === '/admin' || window.location.pathname === '/admin/';
+      const isPathAdmin = window.location.pathname.endsWith('/admin') || window.location.pathname.endsWith('/admin/');
       const isHashAdmin = window.location.hash === '#/admin' || window.location.hash === '#admin';
       if (isPathAdmin || isHashAdmin) {
         setIsAdminOpen(true);
@@ -149,12 +149,13 @@ export default function App() {
 
   const handleCloseAdmin = () => {
     setIsAdminOpen(false);
-    const isPathAdmin = window.location.pathname === '/admin' || window.location.pathname === '/admin/';
+    const isPathAdmin = window.location.pathname.endsWith('/admin') || window.location.pathname.endsWith('/admin/');
     const isHashAdmin = window.location.hash === '#/admin' || window.location.hash === '#admin';
     if (isPathAdmin) {
-      window.history.pushState({}, '', '/');
+      const cleanPath = window.location.pathname.replace(/\/admin\/?$/, '') || '/';
+      window.history.pushState({}, '', cleanPath);
     } else if (isHashAdmin) {
-      window.history.pushState({}, '', window.location.pathname);
+      window.history.pushState({}, '', window.location.pathname + window.location.search);
     }
   };
 
